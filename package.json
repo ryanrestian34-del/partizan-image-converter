@@ -4,9 +4,7 @@
   "private": true,
   "description": "Partizan Face Image Converter",
   "author": "Ryan",
-
   "main": "electron.cjs",
-
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,7 +13,6 @@
     "desktop": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && npm run electron\"",
     "dist": "electron-builder"
   },
-
   "dependencies": {
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
@@ -23,9 +20,8 @@
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
-
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.3.0",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -39,31 +35,24 @@
     "typescript": "^5",
     "wait-on": "^8.0.3"
   },
-
   "build": {
     "appId": "com.partizan.imageconverter",
-
     "productName": "Partizan Image Converter",
-
     "artifactName": "Partizan-Image-Converter-Setup.${ext}",
-
     "directories": {
       "output": "dist"
     },
-
     "files": [
       "out/**/*",
       "electron.cjs",
       "package.json"
     ],
-
     "extraResources": [
       {
         "from": "out",
         "to": "out"
       }
     ],
-
     "win": {
       "target": "nsis"
     }
