@@ -17,7 +17,7 @@ export default function Home() {
       img.onload = () => {
         const canvas = document.createElement("canvas");
 
-        canvas.width = 960;
+        canvas.width = 720;
         canvas.height = 960;
 
         const ctx = canvas.getContext("2d");
@@ -25,18 +25,18 @@ export default function Home() {
         if (ctx) {
           // Background
           ctx.fillStyle = "#1e1e1e";
-          ctx.fillRect(0, 0, 960, 960);
+          ctx.fillRect(0, 0, 720, 960);
 
           // Resize proportional
           const scale = Math.min(
-            960 / img.width,
+            720 / img.width,
             960 / img.height
           );
 
           const newWidth = img.width * scale;
           const newHeight = img.height * scale;
 
-          const x = (960 - newWidth) / 2;
+          const x = (720 - newWidth) / 2;
           const y = (960 - newHeight) / 2;
 
           // Draw image
