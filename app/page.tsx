@@ -73,7 +73,7 @@ export default function Home() {
 
         const resizedFile = new File(
           [resizedBlob],
-          file.name.replace(/\.[^/.]+$/, "") + ".jpg",
+          file.name.replace(/\.[^/.]+$/, "") + "_Converted.jpg",
           {
             type: "image/jpeg",
           }
