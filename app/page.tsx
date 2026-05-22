@@ -115,7 +115,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-100 p-10">
       <h1 className="text-5xl font-bold mb-3">
-        Partizan Image Converter
+      Online Image Converter
       </h1>
 
       <p className="text-gray-600 mb-10">
