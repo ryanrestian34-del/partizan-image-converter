@@ -119,7 +119,7 @@ export default function Home() {
       </h1>
 
       <p className="text-gray-600 mb-10">
-        Auto Resize 960x960 & Compress &lt;1MB
+        Auto Resize 720x960 (3:4) & Compress &lt;1MB
       </p>
 
       {/* ACTION BUTTONS */}
