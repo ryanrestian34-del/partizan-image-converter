@@ -250,8 +250,8 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 p-10">
-      <h1 className="text-5xl font-bold mb-3">
+    <main className="min-h-screen bg-gray-100 p-4 md:p-10">
+    <h1 className="text-3xl md:text-5xl font-bold mb-3">
         Online Image Converter
       </h1>
 
@@ -312,13 +312,13 @@ export default function Home() {
             },
           });
         }}
-        className={`rounded-3xl shadow-xl p-10 border-2 border-dashed text-center transition-all duration-300 ${
+        className={`rounded-3xl shadow-xl p-4 md:p-10 border-2 border-dashed text-center transition-all duration-300 ${
           dragActive
             ? "bg-blue-50 border-blue-500 scale-[1.01]"
             : "bg-white border-gray-300"
         }`}
       >
-        <h2 className="text-3xl font-semibold mb-3">
+        <h2 className="text-2xl md:text-3xl font-semibold mb-3">
           Upload Face Photos
         </h2>
 
@@ -336,7 +336,7 @@ export default function Home() {
         />
 
         {/* GRID */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {images.map((img, index) => (
             <div
               key={index}
@@ -354,7 +354,7 @@ export default function Home() {
               <img
                 src={img.preview}
                 alt=""
-                className="w-full h-64 object-contain bg-[#1e1e1e]"
+                className="w-full h-72 object-contain bg-[#1e1e1e]"
               />
 
               {/* FOOTER */}
@@ -368,7 +368,7 @@ export default function Home() {
                 </p>
 
                 {/* ACTION BUTTONS */}
-                <div className="flex gap-2">
+                <div className="flex flex-col md:flex-row gap-2">
 
                   {/* VIEW */}
                   <button
