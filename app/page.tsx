@@ -23,11 +23,11 @@ export default function Home() {
         const ctx = canvas.getContext("2d");
 
         if (ctx) {
-          // Background
+          // BACKGROUND
           ctx.fillStyle = "#1e1e1e";
           ctx.fillRect(0, 0, 720, 960);
 
-          // Resize proportional
+          // RESIZE PROPORTIONAL
           const scale = Math.min(
             720 / img.width,
             960 / img.height
@@ -39,7 +39,6 @@ export default function Home() {
           const x = (720 - newWidth) / 2;
           const y = (960 - newHeight) / 2;
 
-          // Draw image
           ctx.drawImage(
             img,
             x,
@@ -49,7 +48,7 @@ export default function Home() {
           );
         }
 
-        // Compress JPG
+        // COMPRESS JPG
         canvas.toBlob(
           (blob) => {
             resolve(blob as Blob);
@@ -73,7 +72,7 @@ export default function Home() {
 
         const resizedFile = new File(
           [resizedBlob],
-          file.name.replace(/\.[^/.]+$/, "") + "_converted.jpg",
+          file.name.replace(/\.[^/.]+$/, "") + "_Converted.jpg",
           {
             type: "image/jpeg",
           }
@@ -97,6 +96,144 @@ export default function Home() {
     setImages(updated);
   };
 
+  // EXPORT EXCEL
+  const exportExcel = async () => {
+    const ExcelJS = await import("exceljs");
+
+    const workbook = new ExcelJS.Workbook();
+
+    const worksheet = workbook.addWorksheet("Employees");
+
+    // PARTIZAN TEMPLATE
+    worksheet.columns = [
+      { header: "Name", key: "name", width: 25 },
+      { header: "User ID", key: "userid", width: 20 },
+      { header: "Gender", key: "gender", width: 15 },
+      { header: "ID Number", key: "idnumber", width: 20 },
+      { header: "Telephone", key: "telephone", width: 20 },
+      { header: "IC card 1", key: "ic1", width: 20 },
+      { header: "IC card 2", key: "ic2", width: 20 },
+      { header: "IC card 3", key: "ic3", width: 20 },
+      { header: "Picture Name", key: "picture", width: 25 },
+      { header: "Address", key: "address", width: 25 },
+      { header: "Remarks", key: "remarks", width: 20 },
+      { header: "Nation", key: "nation", width: 20 },
+      { header: "Birthday", key: "birthday", width: 20 },
+      { header: "Native place", key: "native", width: 20 },
+      { header: "Person Type", key: "ptype", width: 20 },
+      { header: "Person Attributes", key: "pattr", width: 25 },
+    ];
+
+    // HEADER STYLE
+    worksheet.getRow(1).height = 25;
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.alignment = {
+        vertical: "middle",
+        horizontal: "center",
+      };
+
+      cell.font = {
+        bold: true,
+      };
+
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+
+    // DATA
+    for (let i = 0; i < images.length; i++) {
+      const img = images[i];
+
+      const rowNumber = i + 2;
+
+      worksheet.addRow({
+        name: img.file.name.replace("_Converted.jpg", ""),
+        userid: "",
+        gender: "",
+        idnumber: "",
+        telephone: "",
+        ic1: "",
+        ic2: "",
+        ic3: "",
+        address: "",
+        remarks: "",
+        nation: "",
+        birthday: "",
+        native: "",
+        ptype: "",
+        pattr: "",
+      });
+
+      // ROW STYLE
+      const row = worksheet.getRow(rowNumber);
+
+      row.height = 120;
+
+      row.eachCell((cell) => {
+        cell.alignment = {
+          vertical: "middle",
+          horizontal: "center",
+          wrapText: true,
+        };
+
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
+
+      // FETCH IMAGE
+      const response = await fetch(img.preview);
+
+      const blob = await response.blob();
+
+      const buffer = await blob.arrayBuffer();
+
+      // ADD IMAGE
+      const imageId = workbook.addImage({
+        buffer,
+        extension: "jpeg",
+      });
+
+      // INSERT IMAGE TO COLUMN I
+      worksheet.addImage(imageId, {
+        tl: {
+          col: 8.25,
+          row: rowNumber - 1 + 0.18,
+        },
+        ext: {
+          width: 95,
+          height: 95,
+        },
+      });
+    }
+
+    // EXPORT FILE
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    // DATE FORMAT
+    const today = new Date();
+
+    const formattedDate =
+      today.getFullYear() +
+      "-" +
+      String(today.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(today.getDate()).padStart(2, "0");
+
+    saveAs(
+      new Blob([buffer]),
+      `Partizan_FR_Import_${formattedDate}.xlsx`
+    );
+  };
+
   // DOWNLOAD ZIP
   const downloadZip = async () => {
     const zip = new JSZip();
@@ -115,7 +252,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-100 p-10">
       <h1 className="text-5xl font-bold mb-3">
-      Online Image Converter
+        Online Image Converter
       </h1>
 
       <p className="text-gray-600 mb-10">
@@ -132,6 +269,14 @@ export default function Home() {
             className="bg-black text-white px-6 py-3 rounded-xl hover:opacity-80 transition"
           >
             Download All ZIP
+          </button>
+
+          {/* EXPORT EXCEL */}
+          <button
+            onClick={exportExcel}
+            className="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition"
+          >
+            Export Excel
           </button>
 
           {/* DELETE ALL */}
