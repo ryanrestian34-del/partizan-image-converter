@@ -235,7 +235,7 @@ const resizeImage = async (
 
           // ZOOM LEVEL
           const zoom =
-            2.2;
+            1;
 
           cropWidth =
             box.width * zoom;
@@ -276,18 +276,32 @@ const resizeImage = async (
         }
       }
 
-      // DRAW CENTERED FACE
-      ctx.drawImage(
-        img,
-        cropX,
-        cropY,
-        cropWidth,
-        cropHeight,
-        0,
-        0,
-        finalWidth,
-        finalHeight
-      );
+// FULL IMAGE FIT
+const scale = Math.min(
+  finalWidth / img.width,
+  finalHeight / img.height
+);
+
+const drawWidth =
+  img.width * scale;
+
+const drawHeight =
+  img.height * scale;
+
+const offsetX =
+  (finalWidth - drawWidth) / 2;
+
+const offsetY =
+  (finalHeight - drawHeight) / 2;
+
+// DRAW FULL IMAGE
+ctx.drawImage(
+  img,
+  offsetX,
+  offsetY,
+  drawWidth,
+  drawHeight
+);
 
       // EXPORT JPG
       let quality = 0.95;
