@@ -47,9 +47,18 @@ useState(960);
 const [targetSizeMB, setTargetSizeMB] =
 useState(1);
 
+const [autoRename, setAutoRename] =
+useState(false);
+
+const [filePrefix, setFilePrefix] =
+useState("PERSON");
+
+const [autoReject, setAutoReject] =
+useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const MAX_FILES = 100;
-  const APP_VERSION = "v1.0.0";
+  const APP_VERSION = "v1.1.0";
   useEffect(() => {
 
     const loadModels = async () => {
@@ -600,20 +609,78 @@ const warnings = [
   ...faceWarnings,
 ];
 
-          const resizedFile = new File(
-            [resizedBlob],
-            file.name.replace(/\.[^/.]+$/, "") +
-              "_Converted.jpg",
-            {
-              type: "image/jpeg",
-            }
-          );
+let qualityScore = 100;
 
-          processed.push({
-            original: file,
-            file: resizedFile,
-            preview: URL.createObjectURL(resizedBlob),warnings,
-          });
+warnings.forEach((warning) => {
+
+  switch (warning) {
+
+    case "Too Dark":
+      qualityScore -= 20;
+      break;
+
+    case "Too Blurry":
+      qualityScore -= 20;
+      break;
+
+    case "No Face Detected":
+      qualityScore -= 40;
+      break;
+
+    case "Multiple Faces":
+      qualityScore -= 30;
+      break;
+
+    case "Face Too Far":
+      qualityScore -= 15;
+      break;
+
+    case "Face Too Close":
+      qualityScore -= 15;
+      break;
+  }
+});
+
+qualityScore = Math.max(
+  0,
+  Math.min(100, qualityScore)
+);
+
+const outputFileName =
+autoRename
+  ? `${filePrefix}_${String(i + 1).padStart(3, "0")}.jpg`
+  : file.name.replace(
+      /\.[^/.]+$/,
+      ""
+    ) + "_Converted.jpg";
+
+const resizedFile = new File(
+[resizedBlob],
+outputFileName,
+{
+  type: "image/jpeg",
+}
+);
+
+processed.push({
+  original: file,
+
+  originalPreview:
+    URL.createObjectURL(file),
+
+  file: resizedFile,
+
+  preview:
+    URL.createObjectURL(resizedBlob),
+
+  qualityScore,
+
+  rejected:
+    autoReject &&
+    warnings.length > 0,
+
+  warnings,
+});
 
           // UPDATE PROGRESS
           setProgress(
@@ -718,8 +785,17 @@ const warnings = [
     });
 
     // DATA
-    for (let i = 0; i < images.length; i++) {
-      const img = images[i];
+    const validImages =
+  images.filter(
+    (img) => !img.rejected
+  );
+
+for (
+  let i = 0;
+  i < validImages.length;
+  i++
+) {
+      const img = validImages[i];
 
       const rowNumber = i + 2;
 
@@ -867,7 +943,11 @@ worksheet.addImage(imageId, {
     }
     const zip = new JSZip();
 
-    images.forEach((img) => {
+    images
+  .filter(
+    (img) => !img.rejected
+  )
+  .forEach((img) => {
       zip.file(img.file.name, img.file);
     });
 
@@ -1145,10 +1225,21 @@ setShowConvertModal(true);
               {/* REMOVE BUTTON */}
               <button
                 onClick={() => removeImage(index)}
-                className="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full hover:bg-red-600 transition"
-              >
-                ×
-              </button>
+                className="
+    absolute top-3 right-3
+    bg-red-500 text-white
+    w-8 h-8 rounded-full
+    text-2xl font-bold
+    transition-all duration-200
+    hover:bg-red-600
+    hover:scale-110
+    hover:rotate-90
+    hover:shadow-lg
+    cursor-pointer
+  "
+>
+  ×
+</button>
 
               {/* IMAGE */}
               <img
@@ -1158,11 +1249,70 @@ setShowConvertModal(true);
               />
 
               {/* FOOTER */}
-              <div className="p-4">
+<div className="p-4">
 
-                <p className="font-semibold truncate mb-2">
-                  {img.file.name}
-                </p>
+<p className="font-semibold truncate mb-2">
+  {img.file.name}
+</p>
+
+{/* FACE QUALITY */}
+<div className="font-semibold mb-1">
+
+  Face Quality :
+
+  <span
+    className={
+      img.qualityScore >= 90
+        ? "text-green-500"
+        : img.qualityScore >= 70
+        ? "text-yellow-500"
+        : img.qualityScore >= 50
+        ? "text-orange-500"
+        : "text-red-500"
+    }
+  >
+    {" "}
+    {img.qualityScore}%
+  </span>
+
+</div>
+
+{/* FACE QUALITY STATUS */}
+<div className="text-sm mb-2">
+
+  {img.qualityScore >= 90 &&
+    "🟢 Excellent"}
+
+  {img.qualityScore >= 70 &&
+    img.qualityScore < 90 &&
+    "🟡 Good"}
+
+  {img.qualityScore >= 50 &&
+    img.qualityScore < 70 &&
+    "🟠 Fair"}
+
+  {img.qualityScore < 50 &&
+    "🔴 Poor"}
+
+</div>
+
+<div className="mt-2">
+
+  {img.rejected ? (
+
+    <span className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
+      ❌ Rejected
+    </span>
+
+  ) : (
+
+    <span className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-bold">
+      ✅ Accepted
+    </span>
+
+  )}
+
+</div>
 
                 <p
   className={`text-sm mb-3 ${
@@ -1249,23 +1399,59 @@ setShowConvertModal(true);
 
             {/* CLOSE */}
             <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute -top-3 -right-3 bg-red-500 text-white w-10 h-10 rounded-full text-xl"
-            >
-              ×
-            </button>
+  onClick={() => setSelectedImage(null)}
+  title="Close Preview"
+  className="
+    absolute top-3 right-3
+    bg-red-500 text-white
+    w-8 h-8 rounded-full
+    text-2xl font-bold
+    transition-all duration-200
+    hover:bg-red-600
+    hover:scale-110
+    hover:rotate-90
+    hover:shadow-lg
+    cursor-pointer
+  "
+>
+  ×
+</button>
 
-            {/* IMAGE */}
-            <img
-              src={selectedImage.preview}
-              alt=""
-              className="w-[90vw] md:w-[500px] h-[70vh] md:h-[500px] object-contain rounded-xl bg-[#1e1e1e]"
-            />
+            <div className="grid md:grid-cols-2 gap-6">
 
-            {/* NAME */}
-            <p className="text-center mt-4 font-semibold">
-              {selectedImage.file.name}
-            </p>
+  <div>
+
+    <h3 className="font-bold text-center mb-3">
+      Original
+    </h3>
+
+    <img
+      src={selectedImage.originalPreview}
+      alt=""
+      className="w-full h-[450px] object-contain rounded-xl bg-[#1e1e1e]"
+    />
+
+  </div>
+
+  <div>
+
+    <h3 className="font-bold text-center mb-3">
+      Converted
+    </h3>
+
+    <img
+      src={selectedImage.preview}
+      alt=""
+      className="w-full h-[450px] object-contain rounded-xl bg-[#1e1e1e]"
+    />
+
+  </div>
+
+</div>
+
+<p className="text-center mt-4 font-semibold">
+  {selectedImage.file.name}
+</p>
 
           </div>
 
@@ -1431,6 +1617,62 @@ setShowConvertModal(true);
       </label>
 
     </div>
+
+{/* AUTO RENAME */}
+
+<div className="mb-6">
+
+  <label className="flex items-center gap-3 mb-4">
+
+    <input
+      type="checkbox"
+      checked={autoRename}
+      onChange={(e) =>
+        setAutoRename(e.target.checked)
+      }
+    />
+
+    Auto Rename Files
+
+  </label>
+
+  {autoRename && (
+
+    <input
+      type="text"
+      value={filePrefix}
+      onChange={(e) =>
+        setFilePrefix(e.target.value)
+      }
+      placeholder="PERSON"
+      className={`w-full border rounded-xl px-4 py-3 ${
+        darkMode
+          ? "bg-[#2a2a2a] text-white border-gray-600"
+          : "bg-white text-black border-gray-300"
+      }`}
+    />
+
+  )}
+
+<div className="mt-4">
+
+<label className="flex items-center gap-3">
+
+  <input
+    type="checkbox"
+    checked={autoReject}
+    onChange={(e) =>
+      setAutoReject(e.target.checked)
+    }
+  />
+
+  Auto Reject Photos With Warnings
+
+</label>
+
+</div>
+
+</div>
 
     {/* CUSTOM FORM */}
     {useCustomResize && (
