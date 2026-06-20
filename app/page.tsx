@@ -1298,16 +1298,16 @@ setShowConvertModal(true);
 
 <div className="mt-2">
 
-  {img.rejected ? (
+  {img.warnings?.length > 0 ? (
 
     <span className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
-      ❌ Rejected
+      ❌ Invalid Face Photo
     </span>
 
   ) : (
 
     <span className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-bold">
-      ✅ Accepted
+      ✅ Valid Face Photo
     </span>
 
   )}
